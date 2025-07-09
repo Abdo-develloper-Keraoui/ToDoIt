@@ -2,6 +2,8 @@ package com.webapp.todoit.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -22,15 +24,32 @@ public class Task {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+
+
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private TasksStatus status = TasksStatus.TODO;
+
+
     //Time of creation of task
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt  = LocalDateTime.now();
 
+    //Time of Updating of task
+    @LastModifiedDate
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt  = LocalDateTime.now();
+
     //Task deleted or no!
     @Column(name = "is_deleted", nullable = false)
-    private boolean isDeleted = false;
+    private boolean deleted = false;
 
-    // Constructors  constructor overloading
+    //Preparing for hard deletion
+    @Column(name = "is_archived", nullable = false)
+    private boolean archived = false;
+
+    // Constructors ----- constructor overloading
 
     public Task() {}
 
@@ -51,7 +70,7 @@ public class Task {
         return title;
     }
 
-    public void SetTitle(String title)
+    public void setTitle(String title)
     {
         this.title = title;
     }
@@ -68,6 +87,13 @@ public class Task {
         this.description = Description;
     }
 
+    //public void set
+
+    public TasksStatus getStatus()
+    {
+        return status;
+    }
+
     //Time of creation You can only access!!
     @JsonFormat(pattern = "dd-MM-yyyy HH:mm")
     public LocalDateTime getCreatedAt()
@@ -75,17 +101,39 @@ public class Task {
         return createdAt;
     }
 
+    //Time of updating you can access and change
+    @JsonFormat(pattern = "dd-MM-yyyy HH:mm")
+    public LocalDateTime getUpdatedAt()
+    {
+        return updatedAt;
+    }
+
+    /// we don't actually need to see it
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     //Is deleted can be accessed and modified to determine if moved to trash before
     //permanent deletion
 
-    public boolean getIsDeleted()
+    public boolean  isDeleted()
     {
-        return isDeleted;
+        return deleted;
     }
 
-    public void setIsDeleted(boolean isDeleted)
+    public void setDeleted(boolean deleted)
     {
-        this.isDeleted = isDeleted;
+        this.deleted = deleted;
+    }
+
+    public boolean isArchived(){
+        return archived;
+    }
+
+    public void setArchived(boolean archived)
+    {
+        this.archived = archived;
     }
 
     public String toString()
@@ -96,15 +144,9 @@ public class Task {
                 "title: " + title + "\n" +
                 "description: " + description + "\n" +
                 "created_at: " + createdAt.format(formatter) + "\n" +
-                "isDeleted: " + isDeleted +
+                "isDeleted: " + deleted +
                 "}";
     }
-
-
-
-
-
-
 }
 
 /***
