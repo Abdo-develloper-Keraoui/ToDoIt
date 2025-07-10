@@ -16,14 +16,13 @@ public class Task {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //The title of each task
+
     @Column(nullable = false)
     private String title;
 
     //The description of each task
     @Column(columnDefinition = "TEXT")
     private String description;
-
 
 
     @Column(name = "status")
@@ -92,6 +91,10 @@ public class Task {
     public TasksStatus getStatus()
     {
         return status;
+    }
+    public void setStatus(TasksStatus status)
+    {
+        this.status = status;
     }
 
     //Time of creation You can only access!!
