@@ -1,7 +1,7 @@
 package com.webapp.todoit.repository;
 
 import com.webapp.todoit.entity.Task;
-import com.webapp.todoit.entity.TasksStatus;
+import com.webapp.todoit.entity.TaskStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -18,7 +18,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     // save(), findById(), findAll(), deleteById()
 
     /// Get task by its status for display
-    List<Task> findByStatus(TasksStatus status);
+    List<Task> findByStatus(TaskStatus status);
 
     /// Get tasks that are soft-deleted: deleted == true
     List<Task> findByDeletedIsTrue();
