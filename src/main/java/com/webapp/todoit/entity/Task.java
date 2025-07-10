@@ -27,7 +27,7 @@ public class Task {
 
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
-    private TasksStatus status = TasksStatus.TODO;
+    private TaskStatus status = TaskStatus.TODO;
 
 
     //Time of creation of task
@@ -88,11 +88,11 @@ public class Task {
 
     //public void set
 
-    public TasksStatus getStatus()
+    public TaskStatus getStatus()
     {
         return status;
     }
-    public void setStatus(TasksStatus status)
+    public void setStatus(TaskStatus status)
     {
         this.status = status;
     }
