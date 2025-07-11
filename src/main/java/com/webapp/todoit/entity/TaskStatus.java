@@ -55,5 +55,38 @@ public enum TaskStatus {
         return TRANSITION_RULES.getOrDefault(this, Collections.emptySet())
                 .contains(newStatus);
     }
+
+
+    // Allowed statuses for editing fields (title, description, etc.)
+    public static final Set<TaskStatus> ALLOW_FIELD_EDIT = Set.of(TODO, IN_PROGRESS);
+
+    /**
+     * Returns true if fields (title, description) can be edited in this status.
+     */
+    public boolean isFieldEditable() {
+        return ALLOW_FIELD_EDIT.contains(this);
+    }
 }
 
+/* public boolean isValidTransition(TasksStatus from, TasksStatus to)
+    {
+        if(from == to) //Status cannot be the same
+        {
+            //throw new InvalidStatusTransitionException(from, to);
+            //I prefer a boolean over an exception
+            return false;
+        }
+        if(from == TasksStatus.TODO && (to == TasksStatus.IN_PROGRESS  || to == TasksStatus.DONE))
+        {
+            return true;
+        }
+        if(from == TasksStatus.IN_PROGRESS && (to == TasksStatus.TODO  || to == TasksStatus.DONE))
+        {
+            return true;
+        }
+        if(from == TasksStatus.DONE && (to == TasksStatus.TODO  || to == TasksStatus.IN_PROGRESS))
+        {
+            return false;
+        }
+    }
+*/
