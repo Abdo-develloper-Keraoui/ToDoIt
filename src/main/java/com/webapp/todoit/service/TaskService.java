@@ -3,14 +3,12 @@ package com.webapp.todoit.service;
 
 import com.webapp.todoit.entity.Task;
 import com.webapp.todoit.entity.TaskStatus;
-import com.webapp.todoit.exceptions.InvalidStatusTransitionException;
-import com.webapp.todoit.exceptions.TaskNotFoundException;
+import com.webapp.todoit.exceptions.*;
 import com.webapp.todoit.repository.TaskRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 /** *Service Layer (Business Logic)
     *What it is: Where your app's "brain" lives
@@ -21,35 +19,41 @@ import java.util.Optional;
 @Service
 public class TaskService {
 
-    @Autowired // Injects the repository
-    private TaskRepository repository;
+    // Injects the repository
+    //constructor injection >>>> @Autowired field injection
+    private TaskRepository taskRepository;
+
+    public TaskService(TaskRepository taskRepository)
+    {
+        this.taskRepository = taskRepository;
+    }
 
     // CREATE: Save new task
     public Task createTask(Task task) {
-        return repository.save(task);
+        return taskRepository.save(task);
     }
 
     //READ: Get a task by its ID, otherwise throw an error
-    public Task getTaskByID(long id)
+    public Task getTaskByID(Long id)
     {
-        return repository.findById(id)
+        return taskRepository.findById(id)
                 .orElseThrow(()->new TaskNotFoundException(id));
     }
 
     // READ: Get active tasks (non-deleted) (For an all tasks page)
     public List<Task> getActiveTasks() {
-        return repository.findByDeletedIsFalseOrderByUpdatedAt();
+        return taskRepository.findByDeletedIsFalseOrderByUpdatedAt();
     }
 
     //READ: Get active tasks by status
     public List<Task> getActiveTasksByStatus(TaskStatus status)
     {
-        return repository.findByStatus(status);
+        return taskRepository.findByStatusAndNotDeleted(status);
     }
 
     // READ: Get soft deleted tasks
     public List<Task> getSoftDeletedTasks() {
-        return repository.findByDeletedIsTrue();
+        return taskRepository.findByDeletedIsTrue();
     }
 
 
@@ -60,7 +64,7 @@ public class TaskService {
     * You can't revert done (the final status) to
     *
         state transitions
-    * You can change task title and description as long as it is in To_Do or in-progress
+    * You can change task title and description as Long as it is in To_Do or in-progress
     if it is done, deleted or archived you can't !!
     * */
 
@@ -77,7 +81,7 @@ public class TaskService {
      * @throws InvalidStatusTransitionException if transition is invalid
      */
 
-    public Task updateTaskStatus(long id, TaskStatus newStatus)
+    public Task updateTaskStatus(Long id, TaskStatus newStatus)
     {
         //we get the current task status
             // we check the validity of the transition
@@ -92,49 +96,89 @@ public class TaskService {
         // Update the status in memory
         currentTask.setStatus(newStatus);
         // Save to database (JPA automatically does UPDATE since task has existing ID)
-        return repository.save(currentTask);
+        return taskRepository.save(currentTask);
     }
 
-    //
-
-
-   /* public boolean isValidTransition(TasksStatus from, TasksStatus to)
-    {
-        if(from == to) //Status cannot be the same
-        {
-            //throw new InvalidStatusTransitionException(from, to);
-            //I prefer a boolean over an exception
-            return false;
-        }
-        if(from == TasksStatus.TODO && (to == TasksStatus.IN_PROGRESS  || to == TasksStatus.DONE))
-        {
-            return true;
-        }
-        if(from == TasksStatus.IN_PROGRESS && (to == TasksStatus.TODO  || to == TasksStatus.DONE))
-        {
-            return true;
-        }
-        if(from == TasksStatus.DONE && (to == TasksStatus.TODO  || to == TasksStatus.IN_PROGRESS))
-        {
-            return false;
-        }
-    }
-*/
-    /// TODO go touch grass
-    ///
     /// TODO update task title and description
 
+    public Task updateTaskTitle(Long id, String newTitle)
+    {
+        Task currentTask = getTaskByID(id);
 
-    // SOFT DELETE: Mark task as deleted
-    public boolean moveToTrash(Long id) {
-        Optional<Task> task = repository.findById(id);
-        if (task.isPresent()) {
-            Task t = task.get();
-            t.setDeleted(true);
-            repository.save(t);
-            return true;
+        if(!currentTask.getStatus().isFieldEditable() || currentTask.isDeleted() || currentTask.isArchived())
+        {
+            throw new TaskFieldCannotBeChangedException("Title");
         }
-        return false;
+
+        if(currentTask.getTitle().equals(newTitle))
+        {
+            return currentTask;
+        }
+
+        currentTask.setTitle(newTitle);
+
+        return taskRepository.save(currentTask);
     }
 
+    /// Update description
+    public Task updateTaskDescription(Long id, String newDescription)
+    {
+        Task currentTask = getTaskByID(id);
+
+        if(!currentTask.getStatus().isFieldEditable() || currentTask.isDeleted() || currentTask.isArchived())
+        {
+            throw new TaskFieldCannotBeChangedException("Description");
+        }
+
+        if(currentTask.getDescription().equals(newDescription))
+        {
+            return currentTask;
+        }
+
+        currentTask.setDescription(newDescription);
+
+        return taskRepository.save(currentTask);
+    }
+
+
+    // SOFT DELETE Logic: Mark task as deleted
+    //TODO Add archiving logic
+
+    public Task moveToTrash(Long id) {
+        Task currentTask = getTaskByID(id);
+
+        if (currentTask.isDeleted()) {//|| currentTask.isArchived()) {
+            throw new TaskAlreadyDeletedException(id);
+        }
+
+        currentTask.setDeleted(true);
+        return taskRepository.save(currentTask);
+    }
+
+    /***
+     * Restoring requires the task to be deleted!
+     * @param id
+     * @return
+     */
+    public Task restoreFromTrash(Long id)
+    {
+        Task currentTask = getTaskByID(id);
+        if(!currentTask.isDeleted())
+        {
+            return currentTask;
+        }
+
+        currentTask.setDeleted(false);
+        return taskRepository.save(currentTask);
+    }
+
+    public void deleteTaskPermanently(Long id)
+    {
+        Task currentTask = getTaskByID(id);
+        if(!currentTask.isDeleted()) {
+            throw new TaskIsNotInTrashException(id);
+
+        }
+        taskRepository.deleteById(id);
+    }
 }
