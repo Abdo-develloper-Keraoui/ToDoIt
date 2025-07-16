@@ -105,7 +105,7 @@ public class TaskService {
     {
         Task currentTask = getTaskByID(id);
 
-        if(!currentTask.getStatus().isFieldEditable() || currentTask.isDeleted() || currentTask.isArchived())
+        if(!currentTask.getStatus().isFieldEditable() || currentTask.isDeleted())//|| currentTask.isArchived())
         {
             throw new TaskFieldCannotBeChangedException("Title");
         }
@@ -125,7 +125,7 @@ public class TaskService {
     {
         Task currentTask = getTaskByID(id);
 
-        if(!currentTask.getStatus().isFieldEditable() || currentTask.isDeleted() || currentTask.isArchived())
+        if(!currentTask.getStatus().isFieldEditable() || currentTask.isDeleted())// || currentTask.isArchived())
         {
             throw new TaskFieldCannotBeChangedException("Description");
         }
