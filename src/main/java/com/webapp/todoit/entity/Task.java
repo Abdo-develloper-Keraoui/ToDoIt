@@ -43,11 +43,11 @@ public class Task {
     //Task deleted or no!
     @Column(name = "is_deleted", nullable = false)
     private boolean deleted = false;
-
+    /*
     //Preparing for hard deletion
     @Column(name = "is_archived", nullable = false)
     private boolean archived = false;
-
+*/
     // Constructors ----- constructor overloading
 
     public Task() {}
@@ -129,7 +129,7 @@ public class Task {
     {
         this.deleted = deleted;
     }
-
+/*
     public boolean isArchived(){
         return archived;
     }
@@ -137,7 +137,7 @@ public class Task {
     public void setArchived(boolean archived)
     {
         this.archived = archived;
-    }
+    }*/
 
     public String toString()
     {
